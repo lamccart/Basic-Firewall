@@ -178,7 +178,7 @@ public class HashTable implements IHashTable {
 
 			hashValue = (leftShiftedValue | rightShiftedValue ^ str.charAt(i));
 		}
-		return hashValue % tableSize;
+		return Math.abs(hashValue % tableSize);
 	}
 
     /**
