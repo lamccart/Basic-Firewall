@@ -200,7 +200,7 @@ public class HashTable implements IHashTable {
 		expand++;
 		collision = 0;
 		maxLengthChain = 0;
-		loadFactor = 0;
+		loadFactor = (double) nelems / (double) tableSize;;
 
 	}
 
