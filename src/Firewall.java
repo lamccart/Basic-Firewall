@@ -1,8 +1,12 @@
 
 import java.util.Scanner;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+/**
+ * This file acts as a firewall for checking a text file of urls. Making a bloom filter of bad urls.
+ *
+ * @author Liam McCarthy
+ * @since 10/28/2018
+ */
 
 /**
  * This program takes in 3 command line arguments. The first one is the malicious URL file. The second one is the
@@ -15,43 +19,57 @@ import java.nio.file.Paths;
  * malicious URL file contains 30000 URLs, then you should use at most 45000 bytes in your bloom filter.
  */
 public class Firewall {
-    public static final long MAX_SPACE = 3/2;
+    public static final double MAX_SPACE = 3.00/2.00;
     /**
      * Main method that drives this program
      * @param args the command line argument
      */
     public static void main(String args[]) {
-        long badBloomSize;
-        long numMixedUrls;
-        long numBadUrls;
+        double badBloomSize;
+        int numMixedUrls = 0;
+        int numBadUrls = 0;
+        int numOutputUrls = 0;
         BloomFilter badUrlsBloom;
         /* Scanner must be put in try catch block to catch potential exception */
         try {
-            numBadUrls = Files.lines(Paths.get(new File(args[0]).getPath())).count();
+            //Reads the bad URL file to find number of URLs
+            FileReader fr = new FileReader(args[0]);
+            LineNumberReader lnr = new LineNumberReader(fr);
+            while (lnr.readLine() != null) {
+                numBadUrls++;
+            }
+            lnr.close();
+            //Creates the bloom filter of bad urls
             badBloomSize = numBadUrls * MAX_SPACE;
             badUrlsBloom = new BloomFilter((int) badBloomSize);
             Scanner sc = new Scanner(new File(args[0]));
+            //Inserts bad url to bloom filter
             while (sc.hasNextLine()) {
                 String badUrl = sc.nextLine();
                 badUrlsBloom.insert(badUrl);
             }
             sc.close();
-            numMixedUrls = Files.lines(Paths.get(new File(args[1]).getPath())).count();
+            //Scans file of mixed urls
             Scanner mixedSc = new Scanner(new File(args[1]));
             while (mixedSc.hasNextLine()) {
-                String mixedUrl = sc.nextLine();
+                String mixedUrl = mixedSc.nextLine();
+                //Increment number of urls
+                numMixedUrls++;
+                //Checks if url is in bloom filter
                 if(!badUrlsBloom.find(mixedUrl)){
+                    //Writes url to output file
                     PrintWriter pw = new PrintWriter(new FileOutputStream(new
                                     File(args[2]),true));
                     pw.println(mixedUrl);
                     pw.close();
+                    //Increment number of output urls
+                    numOutputUrls++;
                 }
             }
-            sc.close();
-            long numUrlsOutput = Files.lines(Paths.get(new File(args[2]).getPath())).count();
-            long numSafeURls = numMixedUrls - numBadUrls;
+            mixedSc.close();
+            int numSafeURls = numMixedUrls - numBadUrls;
             // print statistics
-            System.out.println("False positive rate: "+ ((numSafeURls - numUrlsOutput)/numSafeURls));
+            System.out.println("False positive rate: "+ ((numSafeURls - numOutputUrls)/(double) numSafeURls));
             // Get the size of badURL in bytes
             File badURL = new File(args[0]);
             long inputSize = badURL.length();

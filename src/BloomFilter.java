@@ -1,5 +1,8 @@
 /**
  * Bloom filter implemented by using 3 independent hash functions.
+ *
+ * @author Liam McCarthy
+ * @since 10/28/2018
  */
 public class BloomFilter {
     public static final int NUMBITS = 8;
@@ -8,14 +11,9 @@ public class BloomFilter {
     int size; // the number of slots (bits) in the hash table
 
     private static final int CRC_HASH_SHIFT = 5;
+    private static final int WORD_WIDTH = Integer.SIZE * NUMBITS;
     private static final int CRC_HASH_RIGHT_SHIFT = 27;
 
-    private static final int PJW_HASH_SHIFT = 4;
-    // How much to shift hash by, per char hashed
-    private static final int PJW_HASH_RIGHT_SHIFT = 24;
-    // Right-shift amount, if top 4 bits NZ
-    // 32-BIT
-    private static final int PJW_HASH_MASK = 0xf0000000;
 
     /**
      * The constructor that creates a bloom filter of given size in byte with 8 * tableSize slots.
@@ -28,6 +26,10 @@ public class BloomFilter {
         this.size = tableSize * NUMBITS;
     }
 
+    /**
+     * Hash a given string using the CRC modified function discussed in lecture
+     * @param str the given string
+     */
     private int hashValCRC(String str){
 
         int hashValue = 0;
@@ -37,20 +39,28 @@ public class BloomFilter {
 
             hashValue = (leftShiftedValue | rightShiftedValue ^ str.charAt(i));
         }
-        return hashValue % size;
+        return Math.abs(hashValue % size);
     }
 
-    private int hashValPJW(String str){
 
-        int hashValue = 0;
-        for (int i=0; i<str.length();i++) {
-            hashValue = (hashValue << PJW_HASH_SHIFT) + str.charAt(i);
-            int rotate_bits = hashValue & PJW_HASH_MASK;
-            hashValue ^= rotate_bits | (rotate_bits >> PJW_HASH_RIGHT_SHIFT);
+    /**
+     * Hash a given string using the CRC modified function discussed in lecture
+     * @param str the given string
+     */
+
+    private int hashValClass(String str){
+        int hashVal = 0;
+        for(int i = 0; i < str.length(); i++){
+            int letter = str.charAt(i);
+            hashVal = (hashVal * CRC_HASH_RIGHT_SHIFT + letter) % size;
         }
-        return hashValue % size;
+        return hashVal;
     }
 
+    /**
+     * Hash a given string using the Base256 function from sample hash functions file
+     * @param str the given string
+     */
     private int hashValBase256(String str) {
 
         int hashValue = 0;
@@ -70,17 +80,21 @@ public class BloomFilter {
         if(str == null){
             throw new NullPointerException();
         }else{
+            //find all three keys for string
             int keyCRC = hashValCRC(str);
-            int keyPJW = hashValPJW(str);
+            int keyClass = hashValClass(str);
             int keyBase256 = hashValBase256(str);
+            //find byte index of keys
             int byteIndexCRC = keyCRC / NUMBITS;
-            int byteIndexPJW = keyPJW / NUMBITS;
+            int byteIndexClass = keyClass / NUMBITS;
             int byteIndexBase256 = keyBase256 / NUMBITS;
+            //find bit index of keys
             int bitIndexCRC = keyCRC % NUMBITS;
-            int bitIndexPJW = keyPJW % NUMBITS;
+            int bitIndexClass = keyClass % NUMBITS;
             int bitIndexBase256 = keyBase256 % NUMBITS;
+            //put each bit in bloom filter
             setBit(byteIndexCRC, bitIndexCRC);
-            setBit(byteIndexPJW, bitIndexPJW);
+            setBit(byteIndexClass, bitIndexClass);
             setBit(byteIndexBase256, bitIndexBase256);
         }
     }
@@ -106,15 +120,15 @@ public class BloomFilter {
             throw new NullPointerException();
         }else{
             int keyCRC = hashValCRC(str);
-            int keyPJW = hashValPJW(str);
+            int keyClass = hashValClass(str);
             int keyBase256 = hashValBase256(str);
             int byteIndexCRC = keyCRC / NUMBITS;
-            int byteIndexPJW = keyPJW / NUMBITS;
+            int byteIndexClass = keyClass / NUMBITS;
             int byteIndexBase256 = keyBase256 / NUMBITS;
             int bitIndexCRC = keyCRC % NUMBITS;
-            int bitIndexPJW = keyPJW % NUMBITS;
+            int bitIndexClass = keyClass % NUMBITS;
             int bitIndexBase256 = keyBase256 % NUMBITS;
-            return getSlot(byteIndexCRC, bitIndexCRC) == 1 && getSlot(byteIndexPJW, bitIndexPJW) == 1
+            return getSlot(byteIndexCRC, bitIndexCRC) == 1 && getSlot(byteIndexClass, bitIndexClass) == 1
                     && getSlot(byteIndexBase256, bitIndexBase256) == 1;
         }
     }

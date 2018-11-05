@@ -5,6 +5,13 @@ import java.io.*;
 import java.text.DecimalFormat;
 import java.util.LinkedList;
 
+/**
+ * Implementation of a hash table mapping stings to keys using a CRC modified hash function.
+ *
+ * @author Liam McCarthy
+ * @since 10/28/2018
+ */
+
 public class HashTable implements IHashTable {
 	
 	//You will need a HashTable of LinkedLists. 
@@ -21,9 +28,12 @@ public class HashTable implements IHashTable {
 	private static final double MAX_LOAD = 2.00/3.00;
 	private static final int GROWTH_FACTOR = 2;
 
-	
-	//You are allowed to add more :)
-	
+
+    /**
+     * The constructor that creates a hash table of given size
+     *
+     * @param size the given table size
+     */
 	public HashTable(int size) {
 
 		this.printStats = false;
@@ -31,7 +41,13 @@ public class HashTable implements IHashTable {
 		this.tableSize = size;
 
 	}
-	
+
+    /**
+     * The constructor that creates a hash table of given size and writes stats to file
+     *
+     * @param size the given table size
+     * @param fileName the file to write stats to
+     */
 	public HashTable(int size, String fileName){
 		
 		this.printStats = true;
@@ -40,7 +56,12 @@ public class HashTable implements IHashTable {
 		this.tableSize = size;
 	}
 
-
+    /**
+     * Method that inserts a string value into the hash table using a hashed value
+     *
+     * @param value the string to be input
+     * @throws NullPointerException
+     */
 	public boolean insert(String value) throws NullPointerException{
 
 		if(value == null){
@@ -68,6 +89,12 @@ public class HashTable implements IHashTable {
 		}
 	}
 
+    /**
+     * Method that deletes a string value into the hash table using a hashed value
+     *
+     * @param value the string to be input
+     * @throws NullPointerException
+     */
 	public boolean delete(String value) throws NullPointerException{
 		if(value == null){
 			throw new NullPointerException();
@@ -87,6 +114,13 @@ public class HashTable implements IHashTable {
 		}
 	}
 
+    /**
+     * Method that looks up a string value in the hash table using a hashed value
+     *
+     * @param value the string to be input
+     * @return whether string is in table or not
+     * @throws NullPointerException
+     */
 	public boolean lookup(String value) throws NullPointerException{
 
 		if(value == null){
@@ -98,6 +132,10 @@ public class HashTable implements IHashTable {
 		}
 	}
 
+    /**
+     * Prints the hash table.
+     *
+     */
 	public void printTable(){
 
 		for(int i = 0; i < tableSize; i++){
@@ -114,12 +152,23 @@ public class HashTable implements IHashTable {
 			System.out.println(i+": "+ hashValues);
 		}
 	}
-	
+
+    /**
+     * Gets the size of the hash table including all elements
+     *
+     * @return the size of hash table
+     */
 	public int getSize(){
 
 		return nelems;
 	}
 
+    /**
+     * Hashes a given value into an index
+     *
+     * @param str the value to be hashed
+     * @return hashed index of value
+     */
 	private int hashVal(String str){
 
 		int hashValue = 0;
@@ -132,6 +181,10 @@ public class HashTable implements IHashTable {
 		return hashValue % tableSize;
 	}
 
+    /**
+     * Makes the table bigger by a factor preserving order
+     *
+     */
 	private void rehash(){
 
 		if(printStats){
@@ -151,6 +204,10 @@ public class HashTable implements IHashTable {
 
 	}
 
+    /**
+     * Prints the statistics of hash table to a file
+     *
+     */
 	private void printStatistics(){
 
 		DecimalFormat df = new DecimalFormat("#.##");
